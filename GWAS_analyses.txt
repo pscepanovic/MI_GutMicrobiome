@@ -1,4 +1,4 @@
-### Genome-wide association analyses with all phenotypes except beta-diversity indexes plink was used. 
+### For GWAS analyses of all microbiome phenotypes except beta-diversity indexes plink was used. 
 ### The following command was executed. 
 ### The test were preformed on SCITAS, HPC cluster of EPFL in Switzerland. 
 ### The common programming environment was used.
