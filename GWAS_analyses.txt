@@ -1,0 +1,29 @@
+### Genome-wide association analyses with all phenotypes except beta-diversity indexes plink was used. 
+### The following command was executed. 
+### The test were preformed on SCITAS, HPC cluster of EPFL in Switzerland. 
+### The common programming environment was used.
+### Full information on the cluster can be found at https://scitas-data.epfl.ch/confluence/display/DOC/Using+software+on+the+SCITAS+clusters .
+
+plink2 \
+--bfile MI_HRCimputed_Exome_HLAKIR \
+--covar covar.txt \
+--glm hide-covar cols=+altfreq \
+--maf 0.05 \
+--out $TMP \
+--pheno pheno.txt \
+--pheno-name $TMP \
+--remove GWAS_RelativesToRemove.txt 
+
+
+### For conducting GWAS analyses with beta-diversity indexes microbiomeGWAS was used.
+### The following command was executed. 
+### The test were preformed on SCITAS, HPC cluster of EPFL in Switzerland. 
+### The common programming environment was used.
+### Full information on the cluster can be found at https://scitas-data.epfl.ch/confluence/display/DOC/Using+software+on+the+SCITAS+clusters .
+
+Rscript microbiomeGWAS_v1.0.R \
+-r microbiomeGWAS \
+-p MI_HRCimputed_Exome_HLAKIR \
+-d beta.txt \
+-o . \
+-c covar_beta.txt
