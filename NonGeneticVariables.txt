@@ -1,0 +1,57 @@
+### The following text file outlines the commands used for association testing 
+### between fecal microbiome composition of MI donors with
+### non-genetic variables availible for the cohort.
+
+### All the test were preformed, unless otherwised specified,
+### on SCITAS, HPC cluster of EPFL in Switzerland. 
+### The common programming environment was used.
+### Full information on the cluster (and the enviroment) can be found at https://scitas-data.epfl.ch/confluence/display/DOC/Using+software+on+the+SCITAS+clusters .
+### Information on R program on the cluser can be found at:
+### https://scitas-data.epfl.ch/confluence/display/DOC/Running+R+on+SCITAS+machines .
+
+###########################################################
+#### Association testing with alpha diversity metrics #####
+###########################################################
+
+### Univariate tests ###
+
+# Spearman correlation test were preformed by using the following comand in R: 
+
+
+
+### Multivariate tests ###
+
+# Multivariable ANOVA was preformed for alpha diversity metrics
+# with the following command in R: 
+
+> aov(Alpha_Diversity$ALPHA_INDEX ~ VAR_COVARS, data = Covariates)
+
+###########################################################
+#### Association testing with beta diversity metrics  #####
+###########################################################
+
+#### PERMANOVAs were preformed for beta diversity metrics
+#### with the following command in R using package vegan
+
+> adonis(VAR_BETA ~ VAR_COVARS, Covariates, perm=1000)
+
+
+######################################################
+#### Association testing with individual taxons  #####
+######################################################
+
+#### MaAsLins was run online with default settings. 
+#### The commands used by the online tool are extracted here from the output file.
+
+#taxon	VAR_TAXON
+#metadata	VAR_COVAR
+#samples ALL_SAMPLES
+#Boost formula	adCur ~ VAR_COVAR
+#model-gbm
+#summary-gbm
+#model
+Call:
+lm(formula = as.formula(strFormula), data = frmeTmp, na.action = c_strNA_Action)
+#summary
+Call:
+lm(formula = as.formula(strFormula), data = frmeTmp, na.action = c_strNA_Action)
