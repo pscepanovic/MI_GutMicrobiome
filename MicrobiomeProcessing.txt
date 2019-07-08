@@ -1,0 +1,63 @@
+##################################################
+#### 16S rRNA gene sequencing data processing ####
+##################################################
+
+All the scripts for 16S rRNA gene sequencing data processing were written by Stanislas Mondot, in INRA, France.
+For any further information: stanislas.mondot@inra.fr.
+
+#########################
+###	TrimAndMerge.sh		###
+#########################
+
+## PARAMETERS ##
+	phiX=/projet/uepsd/save/smondot/bin/Vsearch/phiX174/phiX174.fna # (https://www.ncbi.nlm.nih.gov/genome/4241)
+	MRQ=20 # Miniml read quality (20)
+	MRLGT=200 # Minimal read length (200)
+	FWD='CCTACGGRAGGCAGCAG' # MiSeq 5'
+	REV='GGACTACHVGGGTWTCTAAT' #  MiSeq 3'
+	MMRLGT=350 # Minimal merged read length (350)
+
+## SCRIPT START ##
+	## Trim fastq reads according to adapter/primer removal, length and quality (-q 20 -l 200)
+	cutadapt -q $MRQ -m $MRLGT -g $FWD -G $REV -o [R1_CA.fastq.gz] -p [R2_CA.fastq.gz] [R1.fastq.gz] [R2.fastq.gz]; #(Version: v1.18)
+
+	## Read correction
+	spades.py --only-error-correction --careful --pe1-1 [R1_CA.fastq.gz] --pe1-2 [R2_CA.fastq.gz] -o spades_output; #(Version: v3.11.1)
+
+	## Remove phiX reads
+	bwa mem $phiX spades_output/corrected/[R1_CA.fastq.00.0_0.cor.fastq.gz] spades_output/corrected/[R2_CA.fastq.00.0_0.cor.fastq.gz] > [BWA.sam] #(Version: v0.7.17-r1188)
+	samtools view -bS [BWA.sam] > [BWA.bam] #(Version: 1.9)
+	samtools view -b -f 12 [BWA.sam] > [BWA_unmapped.bam]
+	samtools sort -n [BWA_unmapped.bam] -o [BWA_unmapped_sorted.bam]
+	bamToFastq -i [BWA_unmapped_sorted.bam] -fq [R1_BWA_unmapped_sorted.fastq] -fq2 [R2_BWA_unmapped_sorted.fastq] #(Version: v2.27.1)
+
+	## Merge fastq reads according overlaps and quality
+	pear -j 10 -q 20 -f [R1_BWA_unmapped_sorted.fastq] -r [R2_BWA_unmapped_sorted.fastq] -o [assembled.fastq] #(Version: v0.9.11)
+
+	## fastq to fasta
+	sed -n '1~4s/^@/>/p;2~4p' [assembled.fastq] > [assembled.fna]
+## SCRIPT END ##
+
+
+#############################################
+###	VSEARCH script 16S rRNA gene analysis	###
+#############################################
+
+## PROG PATH ##
+v=/bin/vsearch-2.7.1-linux-x86_64/bin/vsearch; #(vsearch v2.7.1_linux_x86_64)
+RDP=${HOME}/bin/RDPTools/; #(Version:RDP Naive Bayesian rRNA Classifier Version 2.11, September 2015)
+
+#~#~# SCRIPT START #~#~#
+## DEREPLICATION ##
+${v} --derep_fulllength [INPUT] --minuniquesize 3 --output [OUTPUT]_DEREP.fna --sizeout --uc [OUTPUT]_DEREP.uc;
+
+## OTU CLUSTERING ##
+${v} --cluster_fast [OUTPUT]_DEREP.fna --id 0.97 --centroids [OUTPUT]_CLUST.fna -uc [OUTPUT]_CLUST.uc --sizeout;
+
+## REFERENCE DATABASE CHIMERA FILTERING ##
+${v} --uchime3_denovo [OUTPUT]_CLUST.fna --abskew 16 --uchimeout [OUTPUT]_CHIMref_Results.txt --nonchimeras [OUTPUT]_woCHIMdn.fna;
+
+## ASSIGN TAXONOMY ##
+java -Xmx1g -jar ${RDP}/classifier.jar classify -g 16Srrna -f fixrank -o ${OUTDIR}/${OUT}\_OTU.tax ${OUTDIR}/${OUT}\_OTU.fna;
+	
+#~#~# SCRIPT END #~#~#
