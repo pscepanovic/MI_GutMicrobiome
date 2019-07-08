@@ -17,7 +17,8 @@
 
 # Spearman correlation test were preformed by using the following comand in R: 
 
-
+rcorr(x, type = "spearman")
+res2 <- rcorr(as.matrix(my_data))
 
 ### Multivariate tests ###
 
@@ -55,3 +56,11 @@ lm(formula = as.formula(strFormula), data = frmeTmp, na.action = c_strNA_Action)
 #summary
 Call:
 lm(formula = as.formula(strFormula), data = frmeTmp, na.action = c_strNA_Action)
+
+
+#### Confirmation of results - Spearman and Wilcoxon test were performed with the following commands in R:
+
+> cor.test(DataSet$Species, DataSet$Variable, method="spearman")
+
+> wilcox.test(Species ~ Variable, data = DataSet, exact = FALSE)
+
