@@ -5,9 +5,9 @@
 All the scripts for 16S rRNA gene sequencing data processing were written by Stanislas Mondot, in INRA, France.
 For any further information: stanislas.mondot@inra.fr.
 
-#########################
+###################################
 ###	TrimAndMerge.sh		###
-#########################
+###################################
 
 ## PARAMETERS ##
 	phiX=/projet/uepsd/save/smondot/bin/Vsearch/phiX174/phiX174.fna # (https://www.ncbi.nlm.nih.gov/genome/4241)
@@ -39,9 +39,9 @@ For any further information: stanislas.mondot@inra.fr.
 ## SCRIPT END ##
 
 
-#############################################
+###################################################
 ###	VSEARCH script 16S rRNA gene analysis	###
-#############################################
+###################################################
 
 ## PROG PATH ##
 v=/bin/vsearch-2.7.1-linux-x86_64/bin/vsearch; #(vsearch v2.7.1_linux_x86_64)
@@ -61,3 +61,25 @@ ${v} --uchime3_denovo [OUTPUT]_CLUST.fna --abskew 16 --uchimeout [OUTPUT]_CHIMre
 java -Xmx1g -jar ${RDP}/classifier.jar classify -g 16Srrna -f fixrank -o ${OUTDIR}/${OUT}\_OTU.tax ${OUTDIR}/${OUT}\_OTU.fna;
 	
 #~#~# SCRIPT END #~#~#
+
+
+###########################################################
+###	Beta diversity and correction for seq-depth	###
+###########################################################
+
+### DATA UPLOAD ###
+d <- list()
+d$tab <- t(read.csv2('DataSet.txt', row.names=1, sep="\t", dec='.'))
+
+## Data Transformation - Needed if you  want to correct for sequencing depth ##
+d$tab <- round(min(rowSums(d$tab)) * d$tab / rowSums(d$tab))
+d$tab <- d$tab[, colSums(d$tab)>0]
+
+## Betadiversity - BC - PCO ##
+d$bray <- vegdist(d$tab, method='bray')
+
+## Export ##
+write.table(as.matrix(d$bray), 'DataSet.txt', quote=F, sep="\t", dec='.', row.names=T, col.names=NA)
+
+#~#~# SCRIPT END #~#~#
+
